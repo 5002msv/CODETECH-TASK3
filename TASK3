@@ -1,0 +1,281 @@
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.HashMap;
+import java.util.Map;
+
+// Product class to represent an item in the inventory
+class Product {
+    private String id;
+    private String name;
+    private int quantity;
+    private double price;
+
+    public Product(String id, String name, int quantity, double price) {
+        this.id = id;
+        this.name = name;
+        this.quantity = quantity;
+        this.price = price;
+    }
+
+    // Getters and setters for each field
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", quantity=" + quantity +
+                ", price=" + price +
+                '}';
+    }
+}
+
+// Inventory class to manage the collection of products
+class Inventory {
+    private Map<String, Product> products;
+
+    public Inventory() {
+        products = new HashMap<>();
+    }
+
+    public void addProduct(Product product) {
+        products.put(product.getId(), product);
+    }
+
+    public void editProduct(String id, String name, int quantity, double price) {
+        Product product = products.get(id);
+        if (product != null) {
+            product.setName(name);
+            product.setQuantity(quantity);
+            product.setPrice(price);
+        }
+    }
+
+    public void deleteProduct(String id) {
+        products.remove(id);
+    }
+
+    public Product getProduct(String id) {
+        return products.get(id);
+    }
+
+    public Map<String, Product> getAllProducts() {
+        return products;
+    }
+
+    public String generateLowStockReport(int threshold) {
+        StringBuilder report = new StringBuilder("Low Stock Report:\n");
+        for (Product product : products.values()) {
+            if (product.getQuantity() < threshold) {
+                report.append(product.toString()).append("\n");
+            }
+        }
+        return report.toString();
+    }
+}
+
+// User class for managing user information and authentication
+class User {
+    private String username;
+    private String password;
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public boolean authenticate(String username, String password) {
+        return this.username.equals(username) && this.password.equals(password);
+    }
+}
+
+// InventoryManagementSystem class for the GUI and main program logic
+public class InventoryManagementSystem extends JFrame {
+    private Inventory inventory;
+    private User user;
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+
+    public InventoryManagementSystem() {
+        inventory = new Inventory();
+        user = new User("admin", "password");  // Hardcoded for simplicity
+
+        setTitle("Inventory Management System");
+        setSize(400, 300);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        initLoginUI();
+    }
+
+    private void initLoginUI() {
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+
+        JLabel usernameLabel = new JLabel("Username:");
+        usernameLabel.setBounds(10, 20, 80, 25);
+        panel.add(usernameLabel);
+
+        usernameField = new JTextField(20);
+        usernameField.setBounds(100, 20, 165, 25);
+        panel.add(usernameField);
+
+        JLabel passwordLabel = new JLabel("Password:");
+        passwordLabel.setBounds(10, 50, 80, 25);
+        panel.add(passwordLabel);
+
+        passwordField = new JPasswordField(20);
+        passwordField.setBounds(100, 50, 165, 25);
+        panel.add(passwordField);
+
+        JButton loginButton = new JButton("Login");
+        loginButton.setBounds(10, 80, 80, 25);
+        loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (user.authenticate(usernameField.getText(), new String(passwordField.getPassword()))) {
+                    initMainUI();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Invalid credentials", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        panel.add(loginButton);
+
+        add(panel);
+        setLocationRelativeTo(null);
+    }
+
+    private void initMainUI() {
+        getContentPane().removeAll();
+        repaint();
+
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+
+        JButton addButton = new JButton("Add Product");
+        addButton.setBounds(10, 20, 150, 25);
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String id = JOptionPane.showInputDialog("Enter Product ID:");
+                String name = JOptionPane.showInputDialog("Enter Product Name:");
+                int quantity = Integer.parseInt(JOptionPane.showInputDialog("Enter Quantity:"));
+                double price = Double.parseDouble(JOptionPane.showInputDialog("Enter Price:"));
+                inventory.addProduct(new Product(id, name, quantity, price));
+            }
+        });
+        panel.add(addButton);
+
+        JButton editButton = new JButton("Edit Product");
+        editButton.setBounds(10, 50, 150, 25);
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String id = JOptionPane.showInputDialog("Enter Product ID to Edit:");
+                String name = JOptionPane.showInputDialog("Enter New Product Name:");
+                int quantity = Integer.parseInt(JOptionPane.showInputDialog("Enter New Quantity:"));
+                double price = Double.parseDouble(JOptionPane.showInputDialog("Enter New Price:"));
+                inventory.editProduct(id, name, quantity, price);
+            }
+        });
+        panel.add(editButton);
+
+        JButton deleteButton = new JButton("Delete Product");
+        deleteButton.setBounds(10, 80, 150, 25);
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String id = JOptionPane.showInputDialog("Enter Product ID to Delete:");
+                inventory.deleteProduct(id);
+            }
+        });
+        panel.add(deleteButton);
+
+        JButton reportButton = new JButton("Low Stock Report");
+        reportButton.setBounds(10, 110, 150, 25);
+        reportButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int threshold = Integer.parseInt(JOptionPane.showInputDialog("Enter Low Stock Threshold:"));
+                String report = inventory.generateLowStockReport(threshold);
+                JOptionPane.showMessageDialog(null, report, "Low Stock Report", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+        panel.add(reportButton);
+
+        JButton viewAllButton = new JButton("View All Products");
+        viewAllButton.setBounds(10, 140, 150, 25);
+        viewAllButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                StringBuilder allProducts = new StringBuilder("All Products:\n");
+                for (Product product : inventory.getAllProducts().values()) {
+                    allProducts.append(product.toString()).append("\n");
+                }
+                JOptionPane.showMessageDialog(null, allProducts.toString(), "All Products", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+        panel.add(viewAllButton);
+
+        add(panel);
+        setLocationRelativeTo(null);
+        revalidate();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                InventoryManagementSystem ims = new InventoryManagementSystem();
+                ims.setVisible(true);
+            }
+        });
+    }
+}
